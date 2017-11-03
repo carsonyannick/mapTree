@@ -12,7 +12,8 @@ public:
     struct request
     {
         char command[7];
-        int argument;
+        int id;
+        char data[30];
     };
     Server(const char * socketAddress); // :  socketAddress_(socketAddress);
     int Accept();

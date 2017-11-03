@@ -45,22 +45,17 @@ int Server::Accept()
     return client;
 }
 
-
 bool Server::Listen(request & request_)
 {
-    /* memset(request_.command, 0, sizeof(request_.command)); */
-    cout << "command before " << request_.command<< endl;
     memset(request_.command, 0, sizeof(request_.command));
-    cout << "command after " << request_.command<< endl;
-    cout << "buf_" << request_.command << endl;
-    char buf_[10];
+    char buf_[7];
     string request = "";
     bool command = true;
     int length = 0;
     // read until we get a newline
     /* while (request.find("\n") == string::npos) */ 
 
-    // read command:
+// 1) read command:
     int nread = recv(client,&request_.command,7,0);
     if (nread < 0) 
     {
@@ -82,18 +77,13 @@ bool Server::Listen(request & request_)
         cout << "socket closed" << endl;
         return false;
     }
-request_.command[6] = '\0';
 
-    /* strcpy(request_.command,buf_); */
-    /* /1* request_.command[6] = '\n'; *1/ */
-    cout << "command " << request_.command<< endl;
-    /* command = false; */
+    request_.command[6] = '\0';
 
+    cout << "Command " << request_.command<< endl;
 
-
-    /* nread = recv(client,&buf_,1,0); */
-    // read argument:
-    nread = recv(client,&buf_,10,0);
+// 2) read id:
+    nread = recv(client,&buf_,7,0);
     if (nread < 0) 
     {
         if (errno == EINTR)
@@ -115,74 +105,75 @@ request_.command[6] = '\0';
         return false;
     }
 
-    buf_[9] = ' ';
-    cout << "argu buf_ : " << buf_ << endl;
-    /* buf_ = buf_+1; */
-    /* buf_ = buf_+1; */
+    buf_[6] = ' ';
+    cout << "buf_ before conversion to int : " << buf_ << endl;
     stringstream ss;
-    cout << "argu buf_ : " << buf_ << endl;
     ss << buf_;
-    ss >> request_.argument;
-    cout << "arg to int " << request_.argument << endl;
+    ss >> request_.id;
+    cout << "buf_ after conversion to int " << request_.id << endl;
 
-    /*
-    int i = 0;
-    while (i != 2) 
+// 3) length of data
+    char len[3];
+    int dataLength;
+    nread = recv(client,&len,2,0);
+    if (nread < 0) 
     {
-        ++i;
-        if(command)
+        if (errno == EINTR)
         {
-            length = 6;
+            // the socket call was interrupted -- try again
+            /* continue; */
         }
         else
         {
-            length = 10;
-        }
-        int nread = recv(client,&buf_,length,0);
-        if (nread < 0) 
-        {
-            if (errno == EINTR)
-            {
-                // the socket call was interrupted -- try again
-                continue;
-            }
-            else
-            {
-                // an error occurred, so break out
-                cout << "else " << nread << " " << errno <<  endl;
-                return false;
-            }
-        } 
-        else if (nread == 0)
-        {
-            // the socket is closed
-            cout << "socket closed" << endl;
+            // an error occurred, so break out
+            cout << "else " << nread << " " << errno <<  endl;
             return false;
         }
+    } 
+    else if (nread == 0)
+    {
+        // the socket is closed
+        cout << "socket closed" << endl;
+        return false;
+    }
 
-        if (command)
+    ss.str("");
+    ss << len;
+    ss >> dataLength;
+
+    cout << "dataLength: " << dataLength << endl;
+
+// 4) read data:
+    nread = recv(client,&request_.data,dataLength,0);
+    if (nread < 0) 
+    {
+        if (errno == EINTR)
         {
-            strcpy(request_.command,buf_);
-            cout << "command " << request_.command<< endl;
-            command = false;
+            // the socket call was interrupted -- try again
+            /* continue; */
         }
         else
         {
-            stringstream ss;
-            cout << "argu buf_ : " << buf_ << endl;
-            ss << buf_;
-            ss >> request_.argument;
-            cout << "arg " << request_.argument << endl;
+            // an error occurred, so break out
+            cout << "else " << nread << " " << errno <<  endl;
+            return false;
         }
-        // be sure to use append in case we have binary data
-        request.append(buf_,nread);
+    } 
+    else if (nread == 0)
+    {
+        // the socket is closed
+        cout << "socket closed" << endl;
+        return false;
     }
 
-*/
+    request_.data[dataLength] = '\0';
+    cout << "Data: " << request_.data << endl;
+
     // a better server would cut off anything after the newline and
     // save it in a cache
     return true;
 }
+
 
 /* bool Server::Reply(int client, string response) */
 bool Server::Reply(string response)
