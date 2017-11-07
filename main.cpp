@@ -17,6 +17,7 @@ int main()
     Server * server = initalize();
     map<int,string> tree;
 
+    stringstream output;
     while(1)
     {
         while(server->Accept() > 0)
@@ -32,13 +33,11 @@ int main()
                 {
                      cout << "id: " << id << " data " << data << endl;
                      tree.insert(pair<int,string>(id, data));
-                    stringstream ss;
-                    ss  << id << " " << data << " added";
-                     server->Reply(ss.str());
+                    output << id << " " << data << " added";
+                     server->Reply(output.str());
                 }
                 else if (strcmp(command,"search") == 0)
                 {
-                     stringstream output;
                      try 
                      {
                          output << "found ";
@@ -60,7 +59,6 @@ int main()
                 }
                 else if (strcmp(command,"delete") == 0)
                 {
-                     stringstream output;
                      if(tree.erase(id))
                      {
                          output << "deleted " << id << " " << data;
@@ -74,13 +72,12 @@ int main()
                 }
                 else if (strcmp(command,"draw  ") == 0)
                 {
-                    stringstream ss;
-                    ss << endl;
+                    output << endl;
                      for(map<int,string>::iterator it=tree.begin(); it != tree.end(); ++it)
                      {
-                         ss << it->first << " " << it->second << endl;
+                         output << it->first << " " << it->second << endl;
                      }
-                    server->Reply(ss.str());
+                    server->Reply(output.str());
                 }
                 else 
                 {
@@ -89,6 +86,7 @@ int main()
                  exit (33);
                 }
             }
+            output.str("");
         }
     }
 }
