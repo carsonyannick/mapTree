@@ -80,7 +80,7 @@ bool Server::Listen(request & request_)
 
     request_.command[6] = '\0';
 
-    cout << "Command " << request_.command<< endl;
+    cout << "Command " << request_.command << endl;
 
 // 2) read id:
     nread = recv(client,&buf_,7,0);

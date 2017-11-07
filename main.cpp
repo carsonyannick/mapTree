@@ -30,41 +30,57 @@ int main()
 
                 if (strcmp("add   ",command) == 0)
                 {
-                     cout << "inside add if" << endl;
                      cout << "id: " << id << " data " << data << endl;
                      tree.insert(pair<int,string>(id, data));
-                     server->Reply("Added!");
+                    stringstream ss;
+                    ss  << id << " " << data << " added";
+                     server->Reply(ss.str());
                 }
                 else if (strcmp(command,"search") == 0)
                 {
-                     cout << "inside search if" << endl;
-
-                     string output;
+                     stringstream output;
                      try 
                      {
-                         output = "found ";
-                         output += tree.at(id);
+                         output << "found ";
+                         output << id;
+                         output << " ";
+                         output << tree.at(id);
                      } 
                      catch (const std::out_of_range& oor)
                      {
-                         output = "not found";
+                         output.str("");
+                         output << "not found ";
+                         output << id;
+                         output << " ";
+                         output << data;
                      }
 
-                     server->Reply(output);
-                     cout << output << endl;
+                     server->Reply(output.str());
+                     cout << output.str() << endl;
                 }
                 else if (strcmp(command,"delete") == 0)
                 {
-                     cout << "inside delete if" << endl;
-                     tree.erase(id);
+                     stringstream output;
+                     if(tree.erase(id))
+                     {
+                         output << "deleted " << id << " " << data;
+                     }
+                     else
+                     {
+                         output << id << " " << data << " not present";
+                     }
+
+                    server->Reply(output.str());
                 }
                 else if (strcmp(command,"draw  ") == 0)
                 {
-                     cout << "inside draw if" << endl;
+                    stringstream ss;
+                    ss << endl;
                      for(map<int,string>::iterator it=tree.begin(); it != tree.end(); ++it)
                      {
-                         cout << it->first << " " << it->second << endl;
+                         ss << it->first << " " << it->second << endl;
                      }
+                    server->Reply(ss.str());
                 }
                 else 
                 {
